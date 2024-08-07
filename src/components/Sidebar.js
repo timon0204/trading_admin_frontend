@@ -192,6 +192,23 @@ const Sidebar = ({ open, onClose, setOpenSidebar }) => {
                     </ListItemIcon>
                     <ListItemText primary="Commission" />
                 </ListItem>
+                <ListItem
+                    onClick={() => handleNavigation('/leverage')}
+                    selected={selectedItem === '/leverage'}
+                    sx={{
+                        cursor: 'pointer',
+                        '&:hover': {
+                            fontWeight: 'bold',
+                            backgroundColor: '#f0f0f0',
+                            borderRight: 'solid 10px #1976D2',
+                        },
+                    }}
+                >
+                    <ListItemIcon>
+                        <TrendingUpIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Leverage" />
+                </ListItem>
                 <Divider />
                 <ListItem
                     onClick={handleLogout}

@@ -46,7 +46,6 @@ const SymbolAssets = ({ openSidebar }) => {
     const [newAsset, setNewAsset] = useState({
         name: '',
         pip_size: '',
-        leverage: '',
     });
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -101,9 +100,6 @@ const SymbolAssets = ({ openSidebar }) => {
         // Check if password is strong
         if (!newAsset.pip_size) {
             tempErrors.pip_size = 'Pip size is required';
-        }
-        if (!newAsset.leverage) {
-            tempErrors.leverage = 'Pip size is required';
         }
 
         setErrors(tempErrors);
@@ -280,14 +276,7 @@ const SymbolAssets = ({ openSidebar }) => {
                                         >
                                             Name
                                         </TableCell>
-                                        <TableCell
-                                            style={{
-                                                color: '#fff',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            Leverage
-                                        </TableCell>
+
                                         <TableCell
                                             style={{
                                                 color: '#fff',
@@ -323,11 +312,7 @@ const SymbolAssets = ({ openSidebar }) => {
                                             >
                                                 {symbol.name}
                                             </TableCell>
-                                            <TableCell
-                                                style={{ textAlign: 'center' }}
-                                            >
-                                                {symbol.leverage}
-                                            </TableCell>
+
                                             <TableCell
                                                 style={{ textAlign: 'center' }}
                                             >
@@ -378,7 +363,6 @@ const SymbolAssets = ({ openSidebar }) => {
                         setNewAsset({
                             name: '',
                             pip_size: '',
-                            leverage: '',
                         });
                         setErrors({});
                         setOpenCreateModal(false);
@@ -422,36 +406,6 @@ const SymbolAssets = ({ openSidebar }) => {
                                 {errors.pip_size}
                             </Typography>
                         )}
-                        <Select
-                            labelId="leverage-label"
-                            value={newAsset.leverage}
-                            onChange={(e) =>
-                                handleNewUserChange('leverage', e.target.value)
-                            }
-                            style={{ width: '100%' }}
-                            displayEmpty
-                            input={<OutlinedInput label="" />}
-                            error={!!errors.leverage}
-                        >
-                            <MenuItem value="">
-                                <span>Select Leverage</span>
-                            </MenuItem>
-                            <MenuItem value={10}>1:10</MenuItem>
-                            <MenuItem value={20}>1:20</MenuItem>
-                            <MenuItem value={30}>1:30</MenuItem>
-                            <MenuItem value={40}>1:40</MenuItem>
-                            <MenuItem value={50}>1:50</MenuItem>
-                            <MenuItem value={60}>1:60</MenuItem>
-                            <MenuItem value={100}>1:100</MenuItem>
-                            <MenuItem value={200}>1:200</MenuItem>
-                            <MenuItem value={500}>1:500</MenuItem>
-                            <MenuItem value={1000}>1:1000</MenuItem>
-                        </Select>
-                        {errors.leverage && (
-                            <Typography color="error">
-                                {errors.leverage}
-                            </Typography>
-                        )}
                     </DialogContent>
                     <DialogActions>
                         <Button
@@ -459,7 +413,6 @@ const SymbolAssets = ({ openSidebar }) => {
                                 setNewAsset({
                                     name: '',
                                     pip_size: '',
-                                    leverage: '',
                                 });
                                 setErrors({});
                                 setOpenCreateModal(false);
@@ -502,7 +455,7 @@ const SymbolAssets = ({ openSidebar }) => {
                                     required
                                 />
                                 <Select
-                                    labelId="leverage-label"
+                                    labelId="pip_size"
                                     value={selectedAsset.pip_size}
                                     onChange={(e) => {
                                         setSelectedAsset({
@@ -523,35 +476,6 @@ const SymbolAssets = ({ openSidebar }) => {
                                     <MenuItem value={1}>1</MenuItem>
                                     <MenuItem value={0.01}>0.01</MenuItem>
                                     <MenuItem value={0.0001}>0.0001</MenuItem>
-                                </Select>
-
-                                <Select
-                                    labelId="leverage-label"
-                                    value={selectedAsset.leverage}
-                                    onChange={(e) => {
-                                        setSelectedAsset({
-                                            ...selectedAsset,
-                                            leverage: e.target.value,
-                                        });
-                                    }}
-                                    style={{ width: '100%' }}
-                                    // input={<OutlinedInput label="" />}
-                                >
-                                    <MenuItem value="">
-                                        <span>Select Leverage</span>{' '}
-                                        {/* Placeholder when nothing is selected */}
-                                    </MenuItem>
-                                    {/* Leverage options */}
-                                    <MenuItem value={10}>1:10</MenuItem>
-                                    <MenuItem value={20}>1:20</MenuItem>
-                                    <MenuItem value={30}>1:30</MenuItem>
-                                    <MenuItem value={40}>1:40</MenuItem>
-                                    <MenuItem value={50}>1:50</MenuItem>
-                                    <MenuItem value={60}>1:60</MenuItem>
-                                    <MenuItem value={100}>1:100</MenuItem>
-                                    <MenuItem value={200}>1:200</MenuItem>
-                                    <MenuItem value={500}>1:500</MenuItem>
-                                    <MenuItem value={1000}>1:1000</MenuItem>
                                 </Select>
                             </>
                         )}
@@ -585,7 +509,6 @@ const SymbolAssets = ({ openSidebar }) => {
                                 setNewAsset({
                                     name: '',
                                     pip_size: '',
-                                    leverage: '',
                                 });
                             }}
                             color="secondary"

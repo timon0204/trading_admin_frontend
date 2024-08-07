@@ -428,6 +428,7 @@ const SymbolManagement = ({ openSidebar }) => {
                     <TextField
                         label="Code"
                         fullWidth
+                        style={{ marginBottom: '10px' }}
                         margin="dense"
                         value={newSymbol.code}
                         onChange={(e) =>
@@ -446,6 +447,7 @@ const SymbolManagement = ({ openSidebar }) => {
                         }
                         error={Boolean(errors.assetName)}
                     >
+                        <MenuItem value="">Asset Name</MenuItem>
                         {assetNames.map((asset) => (
                             <MenuItem key={asset} value={asset}>
                                 {asset}

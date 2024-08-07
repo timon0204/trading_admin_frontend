@@ -14,6 +14,7 @@ import { Button } from '@mui/material';
 import { useSelector } from 'react-redux';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import Leverage from './components/Leverage';
 import './App.css';
 
 const App = () => {
@@ -145,6 +146,14 @@ const App = () => {
                                         element={
                                             <ProtectedRoute>
                                                 <Commissions />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/leverage"
+                                        element={
+                                            <ProtectedRoute>
+                                                <Leverage />
                                             </ProtectedRoute>
                                         }
                                     />
