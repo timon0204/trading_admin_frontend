@@ -89,43 +89,100 @@ const PositionManagement = ({ openSidebar }) => {
                                         color: '#fff',
                                     }}
                                 >
-                                    <TableCell style={{ color: '#fff' }}>
-                                        UserID
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         Type
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         Size
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         SymbolName
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         Status
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         StartPrice
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         StopPrice
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         StopLoss
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         TakeProfit
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         Commission
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         RealProfit
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         CloseReason
                                     </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
+                                    <TableCell
+                                        style={{
+                                            color: '#fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
                                         CreatedAt
                                     </TableCell>
                                 </TableRow>
@@ -134,43 +191,64 @@ const PositionManagement = ({ openSidebar }) => {
                                 {positions &&
                                     positions.map((position) => (
                                         <TableRow key={position.id}>
-                                            <TableCell>
-                                                {position.userID}
-                                            </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.type}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.size}
                                             </TableCell>
-                                            <TableCell>
-                                                {position.symbol}
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {position.symbolName}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.status}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.startPrice}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.stopPrice}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.stopLoss}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.takeProfit}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.commission}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.realProfit}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {position.closeReason}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
                                                 {formatDate(position.createdAt)}
                                             </TableCell>
                                         </TableRow>

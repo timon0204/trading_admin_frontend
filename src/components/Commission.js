@@ -28,37 +28,43 @@ import {
     Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 
-const SymbolManagement = ({ openSidebar }) => {
+const Commission = ({ openSidebar }) => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const token = localStorage.getItem('adminTrade');
-    const [symbols, setSymbol] = useState([]);
-    const [assetNames, setAssetName] = useState([]);
+    const [commissions, setCommissions] = useState([]);
 
     // Modal States
-    const [openCreateModal, setOpenCreateModal] = useState(false);
     const [openEditModal, setOpenEditModal] = useState(false);
-    const [openDeleteModal, setOpenDeleteModal] = useState(false);
-    const [selectedSymbol, setSelectedSymbol] = useState(null);
-    const [newSymbol, setNewSymbol] = useState({});
+    const [selectedCommission, setSelectedCommission] = useState(null);
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     useEffect(() => {
         if (!token) {
             setLoading(true);
             navigate('/login');
         } else {
-            fetchSymbols();
+            fetchCommission();
         }
         setLoading(false);
     }, [token]);
 
-    const fetchSymbols = async () => {
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
+    // Example function to show a snackbar (call this where needed)
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    const fetchCommission = async () => {
         await axios
             .get(`${config.BackendEndpoint}/getCommissions`, {
                 headers: {
@@ -66,10 +72,10 @@ const SymbolManagement = ({ openSidebar }) => {
                 },
             })
             .then((res) => {
-                setSymbol(res.data.commissions);
+                setCommissions(res.data.commissions);
             })
-            .catch((err) => {
-                console.log('Error fetching symbols', err);
+            .catch((error) => {
+                console.log(error);
             });
     };
 
@@ -78,57 +84,19 @@ const SymbolManagement = ({ openSidebar }) => {
         return date.toISOString().split('T')[0];
     };
 
-    const validate = () => {
-        // const tempErrors = {};
-        // if (!newSymbol.email || !newSymbol.email.includes('@')) {
-        //     tempErrors.email = 'Email is required and must include "@"';
-        // }
-
-        // Check if password is strong
-        // if (!newSymbol.password || newSymbol.password.length < 8) {
-        //     tempErrors.password = 'Password must be at least 8 characters long';
-        // }
-
-        // Check if passwords match
-        // if (newSymbol.password !== newSymbol.confirmPassword) {
-        //     tempErrors.confirmPassword = 'Passwords do not match';
-        // }
-
-        // setErrors(tempErrors);
-        // return Object.keys(tempErrors).length === 0;
-        return true;
-    };
-
-    const handleCreateSymbol = async () => {
-        if (validate()) {
-            // Reset the form
-            await axios
-                .post(`${config.BackendEndpoint}/createCommissions`, newSymbol, {
-                    headers: {
-                        Authorization: token ? token : '',
-                    },
-                })
-                .then((res) => {
-                    fetchSymbols();
-                })
-                .catch((error) => {});
-            setOpenCreateModal(false);
-        }
-    };
-
-    const handleEditSymbol = (symbol) => {
-        symbol = { ...symbol, commissionId: symbol.id };
+    const handleEditCommission = (commission) => {
+        commission = { ...commission, commissionId: commission.id };
         setOpenEditModal(true);
-        setSelectedSymbol(symbol);
+        setSelectedCommission(commission);
     };
 
-    const handleUpdateSymbol = async () => {
-        // Logic for updating symbol information
+    const handleUpdateCommission = async () => {
+        // Logic for updating commission information
         await axios
             .post(
                 `${config.BackendEndpoint}/updateCommission`,
                 {
-                    ...selectedSymbol,
+                    ...selectedCommission,
                 },
                 {
                     headers: {
@@ -137,277 +105,257 @@ const SymbolManagement = ({ openSidebar }) => {
                 }
             )
             .then((res) => {
-                fetchSymbols();
+                fetchCommission();
+                showSnackbar(res.data.message, 'success');
             })
-            .catch((error) => {});
-        setOpenCreateModal(false);
+            .catch((error) => {
+                const errorMessage =
+                    error.response?.data?.message || 'An error occurred';
+                showSnackbar(errorMessage, 'error');
+            });
+
         setOpenEditModal(false);
-        setSelectedSymbol(null); // Clear selected symbol
-    };
-
-    const handleDeleteSymbol = async () => {
-        await axios
-            .post(
-                `${config.BackendEndpoint}/deleteSymbol`,
-                { symbolId: selectedSymbol.id },
-                {
-                    headers: {
-                        Authorization: token ? token : '',
-                    },
-                }
-            )
-            .then((res) => {
-                fetchSymbols();
-                setOpenDeleteModal(false);
-            })
-            .catch((error) => {});
-        setOpenCreateModal(false);
-    };
-
-    const handleConfirmDelete = (symbol) => {
-        // Logic for deleting symbol
-        setSelectedSymbol(symbol);
-        setOpenDeleteModal(true);
+        setSelectedCommission(null); // Clear selected commission
     };
 
     return (
-        <Container
-            style={{ marginTop: '30px', width: '100%', textAlign: 'center' }}
-        >
-            <Box
-                flexGrow={1}
-                display="flex"
-                flexDirection="column"
-                alignItems="flex-start"
+        <>
+            <Container
+                style={{
+                    marginTop: '30px',
+                    width: '100%',
+                    textAlign: 'center',
+                }}
             >
-                <Typography
-                    variant="h4"
-                    style={{
-                        marginLeft: '20vw',
-                        color: 'white',
-                        fontFamily: 'nycd',
-                        fontWeight: '1000',
-                        marginBottom: '30px'
-                    }}
+                <Box
+                    flexGrow={1}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-start"
                 >
-                    Commission Management
-                </Typography>
-    
-
-                {loading ? (
-                    <Box
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        height="200px"
+                    <Typography
+                        variant="h4"
+                        style={{
+                            marginLeft: '20vw',
+                            color: 'white',
+                            fontFamily: 'nycd',
+                            fontWeight: '1000',
+                            marginBottom: '30px',
+                        }}
                     >
-                        <CircularProgress />
-                    </Box>
-                ) : symbols.length > 0 ? ( // Ensure symbols is not empty
-                    <TableContainer component={Paper} style={{ width: '100%' }}>
-                        <Table style={{ backgroundColor: '#f5f5f5' }}>
-                            <TableHead>
-                                <TableRow
-                                    style={{
-                                        backgroundColor: 'rgb(13, 191, 150)',
-                                        color: '#fff',
-                                    }}
-                                >
-                                    <TableCell style={{ color: '#fff' }}>
-                                        CompanyEmail
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    Major
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    JPY pairs
-                                    </TableCell>
+                        Commission Management
+                    </Typography>
 
-                                    <TableCell style={{ color: '#fff' }}>
-                                    Indices
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    Metal
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    Oil
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    BTC/USD
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    CreatedAt
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                    UpdatedAt
-                                    </TableCell>
-                                
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Action
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {symbols.map((symbol) => (
-                                    <TableRow key={symbol.id}>
-                                        <TableCell>{symbol.companyEmail}</TableCell>
-                                        <TableCell>{symbol.Major}</TableCell>
-                                        <TableCell>{symbol.JPYpairs}</TableCell>
-                                        <TableCell>{symbol.Indices}</TableCell>
-                                        <TableCell>{symbol.Metal}</TableCell>
-                                        <TableCell>{symbol.Oil}</TableCell>
-                                        <TableCell>{symbol.BTCUSD}</TableCell>
-                                        <TableCell>
-                                            {formatDate(symbol.createdAt)}
+                    {loading ? (
+                        <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="200px"
+                        >
+                            <CircularProgress />
+                        </Box>
+                    ) : commissions.length > 0 ? ( // Ensure commission is not empty
+                        <TableContainer
+                            component={Paper}
+                            style={{ width: '100%' }}
+                        >
+                            <Table style={{ backgroundColor: '#f5f5f5' }}>
+                                <TableHead>
+                                    <TableRow
+                                        style={{
+                                            backgroundColor:
+                                                'rgb(13, 191, 150)',
+                                            color: '#fff',
+                                        }}
+                                    >
+                                        <TableCell style={{ color: '#fff' }}>
+                                            CompanyEmail
                                         </TableCell>
-                                        <TableCell>
-                                            {formatDate(symbol.updatedAt)}
+                                        <TableCell style={{ color: '#fff' }}>
+                                            Crypto
                                         </TableCell>
-                                        <TableCell
-                                            style={{ textAlign: 'center' }}
-                                        >
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleEditSymbol(symbol)
-                                                }
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                            
+                                        <TableCell style={{ color: '#fff' }}>
+                                            Forex
+                                        </TableCell>
+
+                                        <TableCell style={{ color: '#fff' }}>
+                                            Indices
+                                        </TableCell>
+                                        <TableCell style={{ color: '#fff' }}>
+                                            Futures
+                                        </TableCell>
+
+                                        <TableCell style={{ color: '#fff' }}>
+                                            CreatedAt
+                                        </TableCell>
+                                        <TableCell style={{ color: '#fff' }}>
+                                            UpdatedAt
+                                        </TableCell>
+
+                                        <TableCell style={{ color: '#fff' }}>
+                                            Action
                                         </TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                ) : (
-                    <Typography variant="h6" style={{ color: 'white' }}>
-                        No symbol found.
-                    </Typography>
-                )}
-            </Box>
+                                </TableHead>
+                                <TableBody>
+                                    {commissions.map((commission) => (
+                                        <TableRow key={commission.id}>
+                                            <TableCell>
+                                                {commission.companyEmail}
+                                            </TableCell>
+                                            <TableCell>
+                                                {commission.Crypto}
+                                            </TableCell>
+                                            <TableCell>
+                                                {commission.Forex}
+                                            </TableCell>
+                                            <TableCell>
+                                                {commission.Indices}
+                                            </TableCell>
+                                            <TableCell>
+                                                {commission.Futures}
+                                            </TableCell>
 
-
-            {/* Edit Symbol Modal */}
-            <Dialog
-                open={openEditModal}
-                onClose={() => setOpenEditModal(false)}
-            >
-                <DialogTitle>Edit Symbol</DialogTitle>
-                <DialogContent>
-                    {selectedSymbol && (
-                        <>
-                        
-                            <TextField
-                                margin="dense"
-                                label="Major"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.Major}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        Major: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="JPYpairs"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.JPYpairs}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        JPYpairs: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="Indices"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.Indices}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        Indices: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="Metal"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.Metal}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        Metal: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="Oil"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.Oil}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        Oil: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="BTCUSD"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.BTCUSD}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        BTCUSD: e.target.value,
-                                    })
-                                }
-                                required
-                            />
-                      
-                        </>
+                                            <TableCell>
+                                                {formatDate(
+                                                    commission.createdAt
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDate(
+                                                    commission.updatedAt
+                                                )}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                <IconButton
+                                                    onClick={() =>
+                                                        handleEditCommission(
+                                                            commission
+                                                        )
+                                                    }
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Typography variant="h6" style={{ color: 'white' }}>
+                            No commission found.
+                        </Typography>
                     )}
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => setOpenEditModal(false)}
-                        color="secondary"
-                    >
-                        Cancel
-                    </Button>
-                    <Button onClick={handleUpdateSymbol} color="primary">
-                        Update
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                </Box>
 
-
-        </Container>
+                {/* Edit commission Modal */}
+                <Dialog
+                    open={openEditModal}
+                    onClose={() => setOpenEditModal(false)}
+                >
+                    <DialogTitle>Edit Commission</DialogTitle>
+                    <DialogContent>
+                        {selectedCommission && (
+                            <>
+                                <TextField
+                                    margin="dense"
+                                    label="Crypto"
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined"
+                                    value={selectedCommission.Crypto}
+                                    onChange={(e) =>
+                                        setSelectedCommission({
+                                            ...selectedCommission,
+                                            Crypto: e.target.value,
+                                        })
+                                    }
+                                    required
+                                />
+                                <TextField
+                                    margin="dense"
+                                    label="Forex"
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined"
+                                    value={selectedCommission.Forex}
+                                    onChange={(e) =>
+                                        setSelectedCommission({
+                                            ...selectedCommission,
+                                            Forex: e.target.value,
+                                        })
+                                    }
+                                    required
+                                />
+                                <TextField
+                                    margin="dense"
+                                    label="Indices"
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined"
+                                    value={selectedCommission.Indices}
+                                    onChange={(e) =>
+                                        setSelectedCommission({
+                                            ...selectedCommission,
+                                            Indices: e.target.value,
+                                        })
+                                    }
+                                    required
+                                />
+                                <TextField
+                                    margin="dense"
+                                    label="Futures"
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined"
+                                    value={selectedCommission.Futures}
+                                    onChange={(e) =>
+                                        setSelectedCommission({
+                                            ...selectedCommission,
+                                            Futures: e.target.value,
+                                        })
+                                    }
+                                    required
+                                />
+                            </>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={() => setOpenEditModal(false)}
+                            color="secondary"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpdateCommission}
+                            color="primary"
+                        >
+                            Update
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Container>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000} // Duration to hide automatically
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 
-export default SymbolManagement;
+export default Commission;

@@ -5,7 +5,6 @@ import {
     ListItemIcon,
     ListItemText,
     Drawer,
-    IconButton,
     Box,
     Divider,
 } from '@mui/material';
@@ -14,14 +13,15 @@ import { Group, EuroSymbol, MoneyTwoTone } from '@mui/icons-material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ExitToApp from '@mui/icons-material/ExitToApp';
 import BusinessIcon from '@mui/icons-material/Business';
-import CloseIcon from '@mui/icons-material/Close';
-import MenuIcon from '@mui/icons-material/Menu';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+
+import FunctionsIcon from '@mui/icons-material/Functions';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { logout } from '../features/authSlice';
 import logo from '../assets/logo.png';
 
-const Sidebar = ({ open, onClose }) => {
+const Sidebar = ({ open, onClose, setOpenSidebar }) => {
     const location = useLocation();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -35,6 +35,7 @@ const Sidebar = ({ open, onClose }) => {
     };
 
     const handleLogout = () => {
+        setOpenSidebar(false);
         dispatch(logout());
         localStorage.removeItem('adminTrade');
         navigate('/login');
@@ -51,6 +52,7 @@ const Sidebar = ({ open, onClose }) => {
                     width: open ? 240 : 0,
                     boxSizing: 'border-box',
                     transition: 'width 0.3s',
+                    overflowX: 'hidden', // Prevent horizontal overflow
                 },
             }}
         >
@@ -169,13 +171,13 @@ const Sidebar = ({ open, onClose }) => {
                     }}
                 >
                     <ListItemIcon>
-                        <TrendingUpIcon />
+                        <FunctionsIcon />
                     </ListItemIcon>
                     <ListItemText primary="Symbol Assets" />
                 </ListItem>
                 <ListItem
                     onClick={() => handleNavigation('/commission')}
-                    selected={selectedItem === '/symbolAssets'}
+                    selected={selectedItem === '/commission'}
                     sx={{
                         cursor: 'pointer',
                         '&:hover': {
@@ -186,7 +188,7 @@ const Sidebar = ({ open, onClose }) => {
                     }}
                 >
                     <ListItemIcon>
-                        <TrendingUpIcon />
+                        <MonetizationOnIcon />
                     </ListItemIcon>
                     <ListItemText primary="Commission" />
                 </ListItem>
@@ -218,11 +220,7 @@ const Sidebar = ({ open, onClose }) => {
                     alignItems: 'center',
                     p: 2,
                 }}
-            >
-                <IconButton onClick={onClose}>
-                    <MenuIcon />
-                </IconButton>
-            </Box>
+            ></Box>
         </Drawer>
     );
 };

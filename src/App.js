@@ -17,17 +17,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import './App.css';
 
 const App = () => {
-    const [openSidebar, setOpenSidebar] = useState(false);
+    const [openSidebar, setOpenSidebar] = useState(true);
     const { isAuthenticated } = useSelector((state) => state.auth);
     const token = localStorage.getItem('adminTrade');
     const toggleSidebar = () => {
         setOpenSidebar((prev) => !prev);
     };
 
-    console.log('this is a sidebar', openSidebar);
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 600) {
+            if (window.innerWidth < 600 || !token) {
                 setOpenSidebar(false);
             } else {
                 setOpenSidebar(true);
@@ -39,7 +38,7 @@ const App = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
         };
-    }, []);
+    }, [token]);
 
     return (
         <Router>
@@ -50,6 +49,7 @@ const App = () => {
                             open={openSidebar}
                             onClose={() => setOpenSidebar(false)}
                             selectedItem="dashboard"
+                            setOpenSidebar={setOpenSidebar}
                         />
                         <div
                             className="background"
@@ -100,7 +100,11 @@ const App = () => {
                                         path="/userManagement"
                                         element={
                                             <ProtectedRoute>
-                                                <UserManagement />
+                                                <UserManagement
+                                                    setOpenSidebar={
+                                                        setOpenSidebar
+                                                    }
+                                                />
                                             </ProtectedRoute>
                                         }
                                     />

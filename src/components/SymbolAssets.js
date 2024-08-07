@@ -52,6 +52,7 @@ const SymbolAssets = ({ openSidebar }) => {
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     useEffect(() => {
         if (!token) {
@@ -82,26 +83,40 @@ const SymbolAssets = ({ openSidebar }) => {
         const date = new Date(timestamp);
         return date.toISOString().split('T')[0];
     };
+    const handleNewUserChange = (field, value) => {
+        setNewSymbol((prev) => ({ ...prev, [field]: value }));
+
+        // Clear specific error when user starts typing
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: '' }));
+        }
+    };
 
     const validate = () => {
-        // const tempErrors = {};
-        // if (!newSymbol.email || !newSymbol.email.includes('@')) {
-        //     tempErrors.email = 'Email is required and must include "@"';
-        // }
+        const tempErrors = {};
+        if (!newSymbol.name) {
+            tempErrors.name = 'Name is required';
+        }
 
         // Check if password is strong
-        // if (!newSymbol.password || newSymbol.password.length < 8) {
-        //     tempErrors.password = 'Password must be at least 8 characters long';
-        // }
+        if (!newSymbol.pip_size) {
+            tempErrors.pip_size = 'Pip size is required';
+        }
 
-        // Check if passwords match
-        // if (newSymbol.password !== newSymbol.confirmPassword) {
-        //     tempErrors.confirmPassword = 'Passwords do not match';
-        // }
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
+    };
 
-        // setErrors(tempErrors);
-        // return Object.keys(tempErrors).length === 0;
-        return true;
+    // Function to handle closing the Snackbar
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
+    // Example function to show a snackbar (call this where needed)
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
     };
 
     const handleCreateSymbol = async () => {
@@ -115,13 +130,18 @@ const SymbolAssets = ({ openSidebar }) => {
                 })
                 .then((res) => {
                     fetchSymbols();
+                    showSnackbar(res.data.message, 'success');
                     setNewSymbol({
                         name: '',
                         pip_size: '',
-                        status: '',
                     });
+                    setErrors({});
                 })
-                .catch((error) => { });
+                .catch((error) => {
+                    const errorMessage =
+                        error.response?.data?.message || 'An error occurred';
+                    showSnackbar(errorMessage, 'error');
+                });
             setOpenCreateModal(false);
         }
     };
@@ -148,8 +168,13 @@ const SymbolAssets = ({ openSidebar }) => {
             )
             .then((res) => {
                 fetchSymbols();
+                showSnackbar(res.data.message, 'success');
             })
-            .catch((error) => { });
+            .catch((error) => {
+                const errorMessage =
+                    error.response?.data?.message || 'An error occurred';
+                showSnackbar(errorMessage, 'error');
+            });
         setOpenCreateModal(false);
         setOpenEditModal(false);
         setSelectedSymbol(null); // Clear selected symbol
@@ -168,9 +193,14 @@ const SymbolAssets = ({ openSidebar }) => {
             )
             .then((res) => {
                 fetchSymbols();
+                showSnackbar(res.data.message, 'success');
                 setOpenDeleteModal(false);
             })
-            .catch((error) => { });
+            .catch((error) => {
+                const errorMessage =
+                    error.response?.data?.message || 'An error occurred';
+                showSnackbar(errorMessage, 'error');
+            });
         setOpenCreateModal(false);
     };
 
@@ -181,298 +211,346 @@ const SymbolAssets = ({ openSidebar }) => {
     };
 
     return (
-        <Container
-            style={{ marginTop: '30px', width: '100%', textAlign: 'center' }}
-        >
-            <Box
-                flexGrow={1}
-                display="flex"
-                flexDirection="column"
-                alignItems="flex-start"
-            >
-                <Typography
-                    variant="h4"
-                    style={{
-                        marginLeft: '20vw',
-                        color: 'white',
-                        fontFamily: 'nycd',
-                        fontWeight: '1000',
-                    }}
-                >
-                    Symbol Assets
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpenCreateModal(true)}
-                    style={{ marginBottom: '20px', marginTop: '20px' }}
-                >
-                    Create Symbol Asset
-                </Button>
-
-                {loading ? (
-                    <Box
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        height="200px"
-                    >
-                        <CircularProgress />
-                    </Box>
-                ) : symbols.length > 0 ? ( // Ensure accounts is not empty
-                    <TableContainer component={Paper} style={{ width: '100%' }}>
-                        <Table style={{ backgroundColor: '#f5f5f5' }}>
-                            <TableHead>
-                                <TableRow
-                                    style={{
-                                        backgroundColor: 'rgb(13, 191, 150)',
-                                        color: '#fff',
-                                    }}
-                                >
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Name
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        PIP Size
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Status
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        CreateAt
-                                    </TableCell>
-
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Action
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {symbols.map((symbol) => (
-                                    <TableRow key={symbol.id}>
-                                        <TableCell>{symbol.name}</TableCell>
-                                        <TableCell>{symbol.pip_size}</TableCell>
-                                        <TableCell>{symbol.status}</TableCell>
-
-                                        <TableCell>
-                                            {formatDate(symbol.createdAt)}
-                                        </TableCell>
-                                        <TableCell
-                                            style={{ textAlign: 'center' }}
-                                        >
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleEditSymbol(symbol)
-                                                }
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleConfirmDelete(symbol)
-                                                }
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                ) : (
-                    <Typography variant="h6" style={{ color: 'white' }}>
-                        No symbol asset found.
-                    </Typography>
-                )}
-            </Box>
-
-            {/* Create symbol Modal */}
-            <Dialog
-                open={openCreateModal}
-                onClose={() => {
-                    setNewSymbol({
-                        name: '',
-                        type: '',
-                        code: '',
-                        assetName: '',
-                    });
-                    setOpenCreateModal(false);
+        <>
+            <Container
+                style={{
+                    marginTop: '30px',
+                    width: '100%',
+                    textAlign: 'center',
                 }}
             >
-                <DialogTitle>Create Asset</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Name"
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                        value={newSymbol.name}
-                        onChange={(e) =>
-                            setNewSymbol({ ...newSymbol, name: e.target.value })
-                        }
-                        error={!!errors.email}
-                        helperText={errors.email}
-                        required
-                    />
-                    <Select
-                        labelId="leverage-label"
-                        value={newSymbol.pip_size}
-                        onChange={(e) => {
-                            setNewSymbol({ ...newSymbol, pip_size: e.target.value });
+                <Box
+                    flexGrow={1}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                >
+                    <Typography
+                        variant="h4"
+                        style={{
+                            marginLeft: '20vw',
+                            color: 'white',
+                            fontFamily: 'nycd',
+                            fontWeight: '1000',
                         }}
-                        style={{ minWidth: '100%' }}
-                        displayEmpty
-                        input={<OutlinedInput label="" />}
                     >
-                        <MenuItem value="">
-                            <span>Select pip size</span> {/* Placeholder when nothing is selected */}
-                        </MenuItem>
-                        {/* Leverage options */}
-                        <MenuItem value={1}>1</MenuItem>
-                        <MenuItem value={0.01}>0.01</MenuItem>
-                        <MenuItem value={0.0001}>0.0001</MenuItem>
-                    </Select>
-                    <Select
-                        fullWidth
-                        value={newSymbol.status}
-                        onChange={(e) =>
-                            setNewSymbol({
-                                ...newSymbol,
-                                status: e.target.value,
-                            })
-                        }
-                        displayEmpty
-                    >
-                        <MenuItem value="" disabled>
-                            <span>Select asset status.</span>
-                        </MenuItem>
-                        <MenuItem value="Open">Open</MenuItem>
-                        <MenuItem value="Closed">Closed</MenuItem>
-                    </Select>
-                </DialogContent>
-                <DialogActions>
+                        Symbol Assets
+                    </Typography>
                     <Button
-                        onClick={() => setOpenCreateModal(false)}
-                        color="secondary"
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => setOpenCreateModal(true)}
+                        style={{ marginBottom: '20px', marginTop: '20px' }}
                     >
-                        Cancel
+                        Create Symbol Asset
                     </Button>
-                    <Button onClick={handleCreateSymbol} color="primary">
-                        Create
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
-            {/* Edit Symbol Modal */}
-            <Dialog
-                open={openEditModal}
-                onClose={() => setOpenEditModal(false)}
-            >
-                <DialogTitle>Edit Asset</DialogTitle>
-                <DialogContent>
-                    {selectedSymbol && (
-                        <>
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                label="Name"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.name}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        name: e.target.value,
-                                    })
-                                }
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-                            <Select
-                                labelId="leverage-label"
-                                value={selectedSymbol.pip_size}
-                                onChange={(e) => {
-                                    setSelectedSymbol({ ...selectedSymbol, pip_size: e.target.value });
-                                }}
-                                style={{ width: '100%' }}
-                                displayEmpty
-                                input={<OutlinedInput label="" />}
-                                required
-                            >
-                                <MenuItem value="">
-                                    <span>Select pip size</span> {/* Placeholder when nothing is selected */}
-                                </MenuItem>
-                                {/* Leverage options */}
-                                <MenuItem value={1}>1</MenuItem>
-                                <MenuItem value={0.01}>0.01</MenuItem>
-                                <MenuItem value={0.0001}>0.0001</MenuItem>
-                            </Select>
+                    {loading ? (
+                        <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="200px"
+                        >
+                            <CircularProgress />
+                        </Box>
+                    ) : symbols.length > 0 ? ( // Ensure accounts is not empty
+                        <TableContainer
+                            component={Paper}
+                            style={{ width: '100%' }}
+                        >
+                            <Table style={{ backgroundColor: '#f5f5f5' }}>
+                                <TableHead>
+                                    <TableRow
+                                        style={{
+                                            backgroundColor:
+                                                'rgb(13, 191, 150)',
+                                            color: '#fff',
+                                        }}
+                                    >
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Name
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            PIP Size
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            CreateAt
+                                        </TableCell>
 
-                            <Select
-                                fullWidth
-                                value={selectedSymbol.status}
-                                onChange={(e) => {
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        status: e.target.value,
-                                    });
-                                }}
-                            >
-                                <MenuItem value="Open">Open</MenuItem>
-                                <MenuItem value="Closed">Closed</MenuItem>
-                            </Select>
-                        </>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Action
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {symbols.map((symbol) => (
+                                        <TableRow key={symbol.id}>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.name}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.pip_size}
+                                            </TableCell>
+
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {formatDate(symbol.createdAt)}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                <IconButton
+                                                    onClick={() =>
+                                                        handleEditSymbol(symbol)
+                                                    }
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton
+                                                    onClick={() =>
+                                                        handleConfirmDelete(
+                                                            symbol
+                                                        )
+                                                    }
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Typography variant="h6" style={{ color: 'white' }}>
+                            No symbol asset found.
+                        </Typography>
                     )}
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => setOpenEditModal(false)}
-                        color="secondary"
-                    >
-                        Cancel
-                    </Button>
-                    <Button onClick={handleUpdateSymbol} color="primary">
-                        Update
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                </Box>
 
-            {/* Delete Confirmation Modal */}
-            <Dialog
-                open={openDeleteModal}
-                onClose={() => setOpenDeleteModal(false)}
+                {/* Create symbol Modal */}
+                <Dialog
+                    open={openCreateModal}
+                    onClose={() => {
+                        setNewSymbol({
+                            name: '',
+                            pip_size: '',
+                        });
+                        setErrors({});
+                        setOpenCreateModal(false);
+                    }}
+                >
+                    <DialogTitle>Create Asset</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            label="Name"
+                            type="text"
+                            fullWidth
+                            variant="outlined"
+                            value={newSymbol.name}
+                            onChange={(e) =>
+                                handleNewUserChange('name', e.target.value)
+                            }
+                            error={!!errors.name}
+                            helperText={errors.email}
+                            required
+                        />
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            label="PIP size"
+                            type="number"
+                            fullWidth
+                            variant="outlined"
+                            value={newSymbol.pip_size}
+                            onChange={(e) =>
+                                handleNewUserChange('pip_size', e.target.value)
+                            }
+                            error={!!errors.pip_size}
+                            helperText={errors.pip_size}
+                            required
+                        />
+
+                        {errors.pip_size && (
+                            <Typography color="error">
+                                {errors.pip_size}
+                            </Typography>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={() => {
+                                setNewSymbol({
+                                    name: '',
+                                    pip_size: '',
+                                });
+                                setErrors({});
+                                setOpenCreateModal(false);
+                            }}
+                            color="secondary"
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleCreateSymbol} color="primary">
+                            Create
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Edit Symbol Modal */}
+                <Dialog
+                    open={openEditModal}
+                    onClose={() => setOpenEditModal(false)}
+                >
+                    <DialogTitle>Edit Asset</DialogTitle>
+                    <DialogContent>
+                        {selectedSymbol && (
+                            <>
+                                <TextField
+                                    autoFocus
+                                    margin="dense"
+                                    label="Name"
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined"
+                                    value={selectedSymbol.name}
+                                    onChange={(e) =>
+                                        setSelectedSymbol({
+                                            ...selectedSymbol,
+                                            name: e.target.value,
+                                        })
+                                    }
+                                    error={!!errors.email}
+                                    helperText={errors.email}
+                                    required
+                                />
+                                <Select
+                                    labelId="leverage-label"
+                                    value={selectedSymbol.pip_size}
+                                    onChange={(e) => {
+                                        setSelectedSymbol({
+                                            ...selectedSymbol,
+                                            pip_size: e.target.value,
+                                        });
+                                    }}
+                                    style={{ width: '100%' }}
+                                    displayEmpty
+                                    input={<OutlinedInput label="" />}
+                                    required
+                                >
+                                    <MenuItem value="">
+                                        <span>Select pip size</span>{' '}
+                                        {/* Placeholder when nothing is selected */}
+                                    </MenuItem>
+                                    {/* Leverage options */}
+                                    <MenuItem value={1}>1</MenuItem>
+                                    <MenuItem value={0.01}>0.01</MenuItem>
+                                    <MenuItem value={0.0001}>0.0001</MenuItem>
+                                </Select>
+
+                                <Select
+                                    fullWidth
+                                    value={selectedSymbol.status}
+                                    onChange={(e) => {
+                                        setSelectedSymbol({
+                                            ...selectedSymbol,
+                                            status: e.target.value,
+                                        });
+                                    }}
+                                >
+                                    <MenuItem value="Open">Open</MenuItem>
+                                    <MenuItem value="Closed">Closed</MenuItem>
+                                </Select>
+                            </>
+                        )}
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={() => setOpenEditModal(false)}
+                            color="secondary"
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleUpdateSymbol} color="primary">
+                            Update
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+
+                {/* Delete Confirmation Modal */}
+                <Dialog
+                    open={openDeleteModal}
+                    onClose={() => setOpenDeleteModal(false)}
+                >
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogContent>
+                        Are you sure you want to delete this symbol?
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={() => {
+                                setOpenDeleteModal(false);
+                                setNewSymbol({
+                                    name: '',
+                                    type: '',
+                                    code: '',
+                                    assetName: '',
+                                });
+                            }}
+                            color="secondary"
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={handleDeleteSymbol} color="primary">
+                            OK
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Container>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000} // Duration to hide automatically
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>
-                    Are you sure you want to delete this symbol?
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => {
-                            setOpenDeleteModal(false);
-                            setNewSymbol({
-                                name: '',
-                                type: '',
-                                code: '',
-                                assetName: '',
-                            });
-                        }}
-                        color="secondary"
-                    >
-                        Cancel
-                    </Button>
-                    <Button onClick={handleDeleteSymbol} color="primary">
-                        OK
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Container>
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 

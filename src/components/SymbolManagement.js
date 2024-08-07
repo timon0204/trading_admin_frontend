@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import config from './config';
 import { useNavigate } from 'react-router-dom';
@@ -52,18 +52,9 @@ const SymbolManagement = ({ openSidebar }) => {
     const [errors, setErrors] = useState({});
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-    useEffect(() => {
-        if (!token) {
-            setLoading(true);
-            navigate('/login');
-        } else {
-            fetchSymbols();
-        }
-        setLoading(false);
-    }, [token]);
-
-    const fetchSymbols = async () => {
+    const fetchSymbols = useCallback(async () => {
         await axios
             .get(`${config.BackendEndpoint}/getSymbols`, {
                 headers: {
@@ -77,6 +68,28 @@ const SymbolManagement = ({ openSidebar }) => {
             .catch((err) => {
                 console.log('Error fetching symbols', err);
             });
+    }, [token]);
+
+    useEffect(() => {
+        if (!token) {
+            setLoading(true);
+            navigate('/login');
+        } else {
+            fetchSymbols();
+        }
+        setLoading(false);
+    }, [token]);
+
+    // Function to handle closing the Snackbar
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
+    // Example function to show a snackbar (call this where needed)
+    const showSnackbar = (message, severity = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
     };
 
     const formatDate = (timestamp) => {
@@ -85,24 +98,22 @@ const SymbolManagement = ({ openSidebar }) => {
     };
 
     const validate = () => {
-        // const tempErrors = {};
-        // if (!newSymbol.email || !newSymbol.email.includes('@')) {
-        //     tempErrors.email = 'Email is required and must include "@"';
-        // }
+        const tempErrors = {};
+        if (!newSymbol.name) {
+            tempErrors.name = 'Name is required';
+        }
+        if (!newSymbol.type) {
+            tempErrors.type = 'Type is required';
+        }
+        if (!newSymbol.code) {
+            tempErrors.code = 'Code is required';
+        }
+        if (!newSymbol.assetName) {
+            tempErrors.assetName = 'Asset Name is required';
+        }
 
-        // Check if password is strong
-        // if (!newSymbol.password || newSymbol.password.length < 8) {
-        //     tempErrors.password = 'Password must be at least 8 characters long';
-        // }
-
-        // Check if passwords match
-        // if (newSymbol.password !== newSymbol.confirmPassword) {
-        //     tempErrors.confirmPassword = 'Passwords do not match';
-        // }
-
-        // setErrors(tempErrors);
-        // return Object.keys(tempErrors).length === 0;
-        return true;
+        setErrors(tempErrors);
+        return Object.keys(tempErrors).length === 0;
     };
 
     const handleCreateSymbol = async () => {
@@ -116,8 +127,19 @@ const SymbolManagement = ({ openSidebar }) => {
                 })
                 .then((res) => {
                     fetchSymbols();
+                    showSnackbar(res.data.message, 'success');
+                    setNewSymbol({
+                        name: '',
+                        code: '',
+                        type: '',
+                        assetName: '',
+                    });
                 })
-                .catch((error) => {});
+                .catch((error) => {
+                    const errorMessage =
+                        error.response?.data?.message || 'An error occurred';
+                    showSnackbar(errorMessage, 'error');
+                });
             setOpenCreateModal(false);
         }
     };
@@ -144,8 +166,13 @@ const SymbolManagement = ({ openSidebar }) => {
             )
             .then((res) => {
                 fetchSymbols();
+                showSnackbar(res.data.message, 'success');
             })
-            .catch((error) => {});
+            .catch((error) => {
+                const errorMessage =
+                    error.response?.data?.message || 'An error occurred';
+                showSnackbar(errorMessage, 'error');
+            });
         setOpenCreateModal(false);
         setOpenEditModal(false);
         setSelectedSymbol(null); // Clear selected symbol
@@ -164,9 +191,14 @@ const SymbolManagement = ({ openSidebar }) => {
             )
             .then((res) => {
                 fetchSymbols();
+                showSnackbar(res.data.message, 'success');
                 setOpenDeleteModal(false);
             })
-            .catch((error) => {});
+            .catch((error) => {
+                const errorMessage =
+                    error.response?.data?.message || 'An error occurred';
+                showSnackbar(errorMessage, 'error');
+            });
         setOpenCreateModal(false);
     };
 
@@ -176,215 +208,274 @@ const SymbolManagement = ({ openSidebar }) => {
         setOpenDeleteModal(true);
     };
 
+    const handleNewUserChange = (field, value) => {
+        setNewSymbol((prev) => ({ ...prev, [field]: value }));
+
+        // Clear specific error when user starts typing
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: '' }));
+        }
+    };
+
     return (
-        <Container
-            style={{ marginTop: '30px', width: '100%', textAlign: 'center' }}
-        >
-            <Box
-                flexGrow={1}
-                display="flex"
-                flexDirection="column"
-                alignItems="flex-start"
-            >
-                <Typography
-                    variant="h4"
-                    style={{
-                        marginLeft: '20vw',
-                        color: 'white',
-                        fontFamily: 'nycd',
-                        fontWeight: '1000',
-                    }}
-                >
-                    Symbol Management
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpenCreateModal(true)}
-                    style={{ marginBottom: '20px', marginTop: '20px' }}
-                >
-                    Create Symbol
-                </Button>
-
-                {loading ? (
-                    <Box
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        height="200px"
-                    >
-                        <CircularProgress />
-                    </Box>
-                ) : symbols.length > 0 ? ( // Ensure symbols is not empty
-                    <TableContainer component={Paper} style={{ width: '100%' }}>
-                        <Table style={{ backgroundColor: '#f5f5f5' }}>
-                            <TableHead>
-                                <TableRow
-                                    style={{
-                                        backgroundColor: 'rgb(13, 191, 150)',
-                                        color: '#fff',
-                                    }}
-                                >
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Name
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Type
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Code
-                                    </TableCell>
-
-                                    <TableCell style={{ color: '#fff' }}>
-                                        AssetName
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        CreateAt
-                                    </TableCell>
-                                    <TableCell style={{ color: '#fff' }}>
-                                        Action
-                                    </TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {symbols.map((symbol) => (
-                                    <TableRow key={symbol.id}>
-                                        <TableCell>{symbol.name}</TableCell>
-                                        <TableCell>{symbol.type}</TableCell>
-                                        <TableCell>{symbol.code}</TableCell>
-                                        <TableCell>
-                                            {symbol.assetName}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatDate(symbol.createdAt)}
-                                        </TableCell>
-                                        <TableCell
-                                            style={{ textAlign: 'center' }}
-                                        >
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleEditSymbol(symbol)
-                                                }
-                                            >
-                                                <EditIcon />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() =>
-                                                    handleConfirmDelete(symbol)
-                                                }
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                ) : (
-                    <Typography variant="h6" style={{ color: 'white' }}>
-                        No symbol found.
-                    </Typography>
-                )}
-            </Box>
-
-            {/* Create symbol Modal */}
-            <Dialog
-                open={openCreateModal}
-                onClose={() => {
-                    setOpenCreateModal(false);
-                    setNewSymbol({
-                        name: '',
-                        type: '',
-                        code: '',
-                        assetName: '',
-                    });
+        <>
+            <Container
+                style={{
+                    marginTop: '30px',
+                    width: '100%',
+                    textAlign: 'center',
                 }}
             >
-                <DialogTitle>Create Symbol</DialogTitle>
+                <Box
+                    flexGrow={1}
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                >
+                    <Typography
+                        variant="h4"
+                        style={{
+                            marginLeft: '20vw',
+                            color: 'white',
+                            fontFamily: 'nycd',
+                            fontWeight: '1000',
+                        }}
+                    >
+                        Symbol Management
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => setOpenCreateModal(true)}
+                        style={{ marginBottom: '20px', marginTop: '20px' }}
+                    >
+                        Create Symbol
+                    </Button>
+
+                    {loading ? (
+                        <Box
+                            display="flex"
+                            justifyContent="center"
+                            alignItems="center"
+                            height="200px"
+                        >
+                            <CircularProgress />
+                        </Box>
+                    ) : symbols.length > 0 ? ( // Ensure symbols is not empty
+                        <TableContainer
+                            component={Paper}
+                            style={{ width: '100%' }}
+                        >
+                            <Table style={{ backgroundColor: '#f5f5f5' }}>
+                                <TableHead>
+                                    <TableRow
+                                        style={{
+                                            backgroundColor:
+                                                'rgb(13, 191, 150)',
+                                            color: '#fff',
+                                        }}
+                                    >
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Name
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Type
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Code
+                                        </TableCell>
+
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            AssetName
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            CreateAt
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            UpdateAt
+                                        </TableCell>
+                                        <TableCell
+                                            style={{
+                                                color: '#fff',
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            Actions
+                                        </TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {symbols.map((symbol) => (
+                                        <TableRow key={symbol.id}>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.name}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.type}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.code}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {symbol.assetName}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {formatDate(symbol.created_at)}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                {formatDate(symbol.updated_at)}
+                                            </TableCell>
+                                            <TableCell
+                                                style={{ textAlign: 'center' }}
+                                            >
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() =>
+                                                        handleEditSymbol(symbol)
+                                                    }
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton
+                                                    color="secondary"
+                                                    onClick={() =>
+                                                        handleConfirmDelete(
+                                                            symbol
+                                                        )
+                                                    }
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    ) : (
+                        <Typography
+                            variant="h6"
+                            style={{ textAlign: 'center', marginTop: '20px' }}
+                        >
+                            No symbols found.
+                        </Typography>
+                    )}
+                </Box>
+            </Container>
+
+            {/* Modal for Creating Symbol */}
+            <Dialog
+                open={openCreateModal}
+                onClose={() => setOpenCreateModal(false)}
+            >
+                <DialogTitle>Create New Symbol</DialogTitle>
                 <DialogContent>
                     <TextField
-                        autoFocus
-                        margin="dense"
                         label="Name"
-                        type="text"
                         fullWidth
-                        variant="outlined"
+                        margin="dense"
                         value={newSymbol.name}
                         onChange={(e) =>
-                            setNewSymbol({ ...newSymbol, name: e.target.value })
+                            handleNewUserChange('name', e.target.value)
                         }
-                        error={!!errors.email}
-                        helperText={errors.email}
-                        required
+                        error={Boolean(errors.name)}
+                        helperText={errors.name}
                     />
                     <TextField
-                        autoFocus
-                        margin="dense"
                         label="Type"
-                        type="text"
                         fullWidth
-                        variant="outlined"
+                        margin="dense"
                         value={newSymbol.type}
                         onChange={(e) =>
-                            setNewSymbol({ ...newSymbol, type: e.target.value })
+                            handleNewUserChange('type', e.target.value)
                         }
-                        error={!!errors.email}
-                        helperText={errors.email}
-                        required
+                        error={Boolean(errors.type)}
+                        helperText={errors.type}
                     />
                     <TextField
-                        autoFocus
-                        margin="dense"
                         label="Code"
-                        type="text"
                         fullWidth
-                        variant="outlined"
+                        margin="dense"
                         value={newSymbol.code}
                         onChange={(e) =>
-                            setNewSymbol({ ...newSymbol, code: e.target.value })
+                            handleNewUserChange('code', e.target.value)
                         }
-                        error={!!errors.email}
-                        helperText={errors.email}
-                        required
+                        error={Boolean(errors.code)}
+                        helperText={errors.code}
                     />
                     <Select
+                        label="Asset Name"
                         fullWidth
+                        margin="dense"
                         value={newSymbol.assetName}
-                        onChange={(e) => {
-                            setNewSymbol({
-                                ...newSymbol,
-                                assetName: e.target.value,
-                            });
-                        }}
-                        displayEmpty
+                        onChange={(e) =>
+                            handleNewUserChange('assetName', e.target.value)
+                        }
+                        error={Boolean(errors.assetName)}
                     >
-                        <MenuItem value="" disabled>
-                            <em>Select an asset name.</em>
-                        </MenuItem>
-                        {assetNames &&
-                            assetNames.map((name, index) => {
-                                return (
-                                    <MenuItem key={index} value={name}>
-                                        {name}
-                                    </MenuItem>
-                                );
-                            })}
+                        {assetNames.map((asset) => (
+                            <MenuItem key={asset} value={asset}>
+                                {asset}
+                            </MenuItem>
+                        ))}
                     </Select>
+                    {errors.assetName && (
+                        <Typography
+                            color="error"
+                            variant="body2"
+                            style={{ marginTop: '4px' }}
+                        >
+                            {errors.assetName}
+                        </Typography>
+                    )}
                 </DialogContent>
                 <DialogActions>
                     <Button
-                        onClick={() => {
-                            setOpenCreateModal(false);
-                            setNewSymbol({
-                                name: '',
-                                type: '',
-                                code: '',
-                                assetName: '',
-                            });
-                        }}
-                        color="secondary"
+                        onClick={() => setOpenCreateModal(false)}
+                        color="primary"
                     >
                         Cancel
                     </Button>
@@ -394,92 +485,88 @@ const SymbolManagement = ({ openSidebar }) => {
                 </DialogActions>
             </Dialog>
 
-            {/* Edit Symbol Modal */}
+            {/* Modal for Editing Symbol */}
             <Dialog
                 open={openEditModal}
                 onClose={() => setOpenEditModal(false)}
             >
                 <DialogTitle>Edit Symbol</DialogTitle>
                 <DialogContent>
-                    {selectedSymbol && (
-                        <>
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                label="Name"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.name}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        name: e.target.value,
-                                    })
-                                }
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="Type"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.type}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        type: e.target.value,
-                                    })
-                                }
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-                            <TextField
-                                margin="dense"
-                                label="Code"
-                                type="text"
-                                fullWidth
-                                variant="outlined"
-                                value={selectedSymbol.code}
-                                onChange={(e) =>
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        code: e.target.value,
-                                    })
-                                }
-                                error={!!errors.email}
-                                helperText={errors.email}
-                                required
-                            />
-
-                            <Select
-                                fullWidth
-                                value={selectedSymbol.assetName}
-                                onChange={(e) => {
-                                    setSelectedSymbol({
-                                        ...selectedSymbol,
-                                        assetName: e.target.value,
-                                    });
-                                }}
-                            >
-                                {assetNames &&
-                                    assetNames.map((name, index) => (
-                                        <MenuItem key={index} value={name}>
-                                            {name}
-                                        </MenuItem>
-                                    ))}
-                            </Select>
-                        </>
+                    <TextField
+                        label="Name"
+                        fullWidth
+                        margin="dense"
+                        value={selectedSymbol?.name || ''}
+                        onChange={(e) =>
+                            setSelectedSymbol((prev) => ({
+                                ...prev,
+                                name: e.target.value,
+                            }))
+                        }
+                        error={Boolean(errors.name)}
+                        helperText={errors.name}
+                    />
+                    <TextField
+                        label="Type"
+                        fullWidth
+                        margin="dense"
+                        value={selectedSymbol?.type || ''}
+                        onChange={(e) =>
+                            setSelectedSymbol((prev) => ({
+                                ...prev,
+                                type: e.target.value,
+                            }))
+                        }
+                        error={Boolean(errors.type)}
+                        helperText={errors.type}
+                    />
+                    <TextField
+                        label="Code"
+                        fullWidth
+                        margin="dense"
+                        value={selectedSymbol?.code || ''}
+                        onChange={(e) =>
+                            setSelectedSymbol((prev) => ({
+                                ...prev,
+                                code: e.target.value,
+                            }))
+                        }
+                        error={Boolean(errors.code)}
+                        helperText={errors.code}
+                    />
+                    <Select
+                        label="Asset Name"
+                        fullWidth
+                        margin="dense"
+                        value={selectedSymbol?.assetName || ''}
+                        onChange={(e) =>
+                            setSelectedSymbol((prev) => ({
+                                ...prev,
+                                assetName: e.target.value,
+                            }))
+                        }
+                        error={Boolean(errors.assetName)}
+                    >
+                        {assetNames.map((asset) => (
+                            <MenuItem key={asset} value={asset}>
+                                {asset}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    {errors.assetName && (
+                        <Typography
+                            color="error"
+                            variant="body2"
+                            style={{ marginTop: '4px' }}
+                        >
+                            {errors.assetName}
+                        </Typography>
                     )}
                 </DialogContent>
                 <DialogActions>
                     <Button
                         onClick={() => setOpenEditModal(false)}
-                        color="secondary"
+                        color="primary"
                     >
                         Cancel
                     </Button>
@@ -489,28 +576,41 @@ const SymbolManagement = ({ openSidebar }) => {
                 </DialogActions>
             </Dialog>
 
-            {/* Delete Confirmation Modal */}
+            {/* Modal for Confirming Deletion */}
             <Dialog
                 open={openDeleteModal}
                 onClose={() => setOpenDeleteModal(false)}
             >
-                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogTitle>Confirm Delete</DialogTitle>
                 <DialogContent>
                     Are you sure you want to delete this symbol?
                 </DialogContent>
                 <DialogActions>
                     <Button
                         onClick={() => setOpenDeleteModal(false)}
-                        color="secondary"
+                        color="primary"
                     >
                         Cancel
                     </Button>
                     <Button onClick={handleDeleteSymbol} color="primary">
-                        OK
+                        Delete
                     </Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+            >
+                <Alert
+                    onClose={handleSnackbarClose}
+                    severity={snackbarSeverity}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 
