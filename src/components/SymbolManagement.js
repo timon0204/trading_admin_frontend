@@ -78,8 +78,9 @@ const SymbolManagement = ({ openSidebar }) => {
             fetchSymbols();
         }
         setLoading(false);
-    }, [token]);
 
+        // eslint-disable-next-line
+    }, [token, navigate]);
     // Function to handle closing the Snackbar
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);

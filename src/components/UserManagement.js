@@ -70,7 +70,8 @@ const UserManagement = ({ setOpenSidebar }) => {
             fetchAccounts();
         }
         setLoading(false);
-    }, [token]);
+        // eslint-disable-next-line
+    }, [token, navigate]);
 
     // Function to handle closing the Snackbar
     const handleSnackbarClose = () => {
