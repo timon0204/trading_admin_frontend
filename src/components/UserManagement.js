@@ -52,8 +52,6 @@ const UserManagement = ({ setOpenSidebar }) => {
         email: '',
         name: '',
         balance: '',
-        leverage: '',
-
         type: 'Live',
     });
     // State to control the visibility and message of the Snackbar
@@ -133,9 +131,6 @@ const UserManagement = ({ setOpenSidebar }) => {
         if (!newUser.balance) {
             tempErrors.balance = 'Balance is required';
         }
-        if (!newUser.leverage) {
-            tempErrors.leverage = 'Leverage is required';
-        }
 
         setErrors(tempErrors);
         return Object.keys(tempErrors).length === 0;
@@ -177,8 +172,6 @@ const UserManagement = ({ setOpenSidebar }) => {
                         email: '',
                         name: '',
                         balance: '',
-                        leverage: '',
-
                         type: 'Live',
                     });
                 })
@@ -191,8 +184,6 @@ const UserManagement = ({ setOpenSidebar }) => {
                         email: '',
                         name: '',
                         balance: '',
-                        leverage: '',
-
                         type: 'Live',
                     });
                 });
@@ -376,14 +367,7 @@ const UserManagement = ({ setOpenSidebar }) => {
                                         >
                                             TotalProfit
                                         </TableCell>
-                                        <TableCell
-                                            style={{
-                                                color: '#fff',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            Leverage
-                                        </TableCell>
+
                                         <TableCell
                                             style={{
                                                 color: '#fff',
@@ -457,11 +441,7 @@ const UserManagement = ({ setOpenSidebar }) => {
                                             >
                                                 {account.totalProfit}
                                             </TableCell>
-                                            <TableCell
-                                                style={{ textAlign: 'center' }}
-                                            >
-                                                {account.leverage}
-                                            </TableCell>
+
                                             <TableCell
                                                 style={{ textAlign: 'center' }}
                                             >
@@ -519,7 +499,6 @@ const UserManagement = ({ setOpenSidebar }) => {
                             email: '',
                             name: '',
                             balance: '',
-                            leverage: '',
                             type: 'Live',
                         });
                         setErrors({});
@@ -599,37 +578,6 @@ const UserManagement = ({ setOpenSidebar }) => {
                             error={!!errors.balance}
                             helperText={errors.balance}
                         />
-
-                        <Select
-                            labelId="leverage-label"
-                            value={newUser.leverage}
-                            onChange={(e) =>
-                                handleNewUserChange('leverage', e.target.value)
-                            }
-                            style={{ width: '100%' }}
-                            displayEmpty
-                            input={<OutlinedInput label="" />}
-                            error={!!errors.leverage}
-                        >
-                            <MenuItem value="">
-                                <span>Select Leverage</span>
-                            </MenuItem>
-                            <MenuItem value={10}>1:10</MenuItem>
-                            <MenuItem value={20}>1:20</MenuItem>
-                            <MenuItem value={30}>1:30</MenuItem>
-                            <MenuItem value={40}>1:40</MenuItem>
-                            <MenuItem value={50}>1:50</MenuItem>
-                            <MenuItem value={60}>1:60</MenuItem>
-                            <MenuItem value={100}>1:100</MenuItem>
-                            <MenuItem value={200}>1:200</MenuItem>
-                            <MenuItem value={500}>1:500</MenuItem>
-                            <MenuItem value={1000}>1:1000</MenuItem>
-                        </Select>
-                        {errors.leverage && (
-                            <Typography color="error">
-                                {errors.leverage}
-                            </Typography>
-                        )}
 
                         <Select
                             labelId="User_Type"
@@ -778,35 +726,6 @@ const UserManagement = ({ setOpenSidebar }) => {
                                         })
                                     }
                                 />
-
-                                <Select
-                                    labelId="leverage-label"
-                                    value={selectedUser.leverage}
-                                    onChange={(e) => {
-                                        setSelectedUser({
-                                            ...selectedUser,
-                                            leverage: e.target.value,
-                                        });
-                                    }}
-                                    style={{ width: '100%' }}
-                                    // input={<OutlinedInput label="" />}
-                                >
-                                    <MenuItem value="">
-                                        <span>Select Leverage</span>{' '}
-                                        {/* Placeholder when nothing is selected */}
-                                    </MenuItem>
-                                    {/* Leverage options */}
-                                    <MenuItem value={10}>1:10</MenuItem>
-                                    <MenuItem value={20}>1:20</MenuItem>
-                                    <MenuItem value={30}>1:30</MenuItem>
-                                    <MenuItem value={40}>1:40</MenuItem>
-                                    <MenuItem value={50}>1:50</MenuItem>
-                                    <MenuItem value={60}>1:60</MenuItem>
-                                    <MenuItem value={100}>1:100</MenuItem>
-                                    <MenuItem value={200}>1:200</MenuItem>
-                                    <MenuItem value={500}>1:500</MenuItem>
-                                    <MenuItem value={1000}>1:1000</MenuItem>
-                                </Select>
                             </>
                         )}
                     </DialogContent>

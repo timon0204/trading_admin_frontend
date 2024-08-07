@@ -310,14 +310,7 @@ const SymbolManagement = ({ openSidebar }) => {
                                         >
                                             AssetName
                                         </TableCell>
-                                        <TableCell
-                                            style={{
-                                                color: '#fff',
-                                                textAlign: 'center',
-                                            }}
-                                        >
-                                            CreateAt
-                                        </TableCell>
+
                                         <TableCell
                                             style={{
                                                 color: '#fff',
@@ -359,15 +352,11 @@ const SymbolManagement = ({ openSidebar }) => {
                                             >
                                                 {symbol.assetName}
                                             </TableCell>
+
                                             <TableCell
                                                 style={{ textAlign: 'center' }}
                                             >
-                                                {formatDate(symbol.created_at)}
-                                            </TableCell>
-                                            <TableCell
-                                                style={{ textAlign: 'center' }}
-                                            >
-                                                {formatDate(symbol.updated_at)}
+                                                {formatDate(symbol.updatedAt)}
                                             </TableCell>
                                             <TableCell
                                                 style={{ textAlign: 'center' }}
@@ -603,6 +592,7 @@ const SymbolManagement = ({ openSidebar }) => {
                 open={snackbarOpen}
                 autoHideDuration={6000}
                 onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
                 <Alert
                     onClose={handleSnackbarClose}
